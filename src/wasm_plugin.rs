@@ -35,7 +35,12 @@ impl SyncPluginHandler<Configuration> for RuffPluginHandler {
         update_url: Some("https://plugins.dprint.dev/dprint/dprint-plugin-ruff/latest.json".to_string()),
       },
       file_matching: FileMatchingInfo {
-        file_extensions: vec!["py".to_string(), "pyi".to_string(), "ipynb".to_string()],
+        file_extensions: vec![
+          "py".to_string(),
+          "pyi".to_string(),
+          // disabled for a bit because I found it breaks notebooks in vscode
+          // "ipynb".to_string()
+        ],
         file_names: vec![],
       },
     }
