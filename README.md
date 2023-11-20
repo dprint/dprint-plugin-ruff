@@ -4,7 +4,7 @@
 
 Adapter for [Ruff](https://github.com/astral-sh/ruff) for use as a formatting plugin in [dprint](https://github.com/dprint/dprint).
 
-Formats .py, .pyi, and .ipynb files.
+Formats .py, and .pyi files.
 
 ## Install
 
