@@ -1,0 +1,26 @@
+-- file.pyi --
+== should format ==
+# generated this with ChatGPT
+from typing import List, Union
+
+def    func(   a: int, b: str) -> List[  Union[int, str]]: ...
+
+class MyClass:
+  value: int
+
+  def __init__(   self, value: int) -> None: ...
+  def method(self, param   : str) -> str: ...
+  def another_method(self, x: float) -> float: ...
+
+[expect]
+# generated this with ChatGPT
+from typing import List, Union
+
+def func(a: int, b: str) -> List[Union[int, str]]: ...
+
+class MyClass:
+    value: int
+
+    def __init__(self, value: int) -> None: ...
+    def method(self, param: str) -> str: ...
+    def another_method(self, x: float) -> float: ...

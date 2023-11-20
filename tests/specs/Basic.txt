@@ -1,0 +1,11 @@
+== should format ==
+def my_func():
+  print(   'test'   )
+
+[expect]
+def my_func():
+    print("test")
+
+== should format empty ==
+
+[expect]

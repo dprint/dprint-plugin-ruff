@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://plugins.dprint.dev/dprint/dprint-plugin-ruff/0.0.0/schema.json",
+  "type": "object",
+  "properties": {
+    "indentWidth": {
+      "description": "The number of characters for an indent.",
+      "default": 4,
+      "type": "number"
+    },
+    "indentStyle": {
+      "description": "Whether to use tabs or spaces.",
+      "type": "string",
+      "default": "space",
+      "oneOf": [{
+        "const": "tab",
+        "description": "Use tabs."
+      }, {
+        "const": "space",
+        "description": "Use spaces."
+      }]
+    },
+    "lineLength": {
+      "description": "How many characters can be written on a single line.",
+      "default": 88,
+      "type": "number"
+    },
+    "quoteStyle": {
+      "description": "The type of quote used when representing string literals.",
+      "type": "string",
+      "default": "double",
+      "oneOf": [{
+        "const": "double",
+        "description": "Use double quotes."
+      }, {
+        "const": "single",
+        "description": "Use single quotes"
+      }]
+    },
+    "lineEnding": {
+      "description": "The kind of line ending.",
+      "type": "string",
+      "default": "lf",
+      "oneOf": [{
+        "const": "lf",
+        "description": "Use line feeds."
+      }, {
+        "const": "cr-lf",
+        "description": "Use carriage return, line feeds."
+      }]
+    },
+    "skipMagicTrailingComma": {
+      "description": "Ignore the magic trailing comma.",
+      "type": "boolean",
+      "default": false
+    },
+    "preview": {
+      "description": "Whether to enable preview mode. When preview mode is enabled, Ruff will use unstable rules, fixes, and formatting.",
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "@dprint/ruff",
+  "version": "0.0.0",
+  "description": "Wasm buffer for dprint-plugin-ruff.",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dprint/dprint-plugin-ruff.git"
+  },
+  "keywords": [
+    "ruff",
+    "code",
+    "formatter",
+    "dprint"
+  ],
+  "author": "David Sherret",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dprint/dprint-plugin-ruff/issues"
+  },
+  "homepage": "https://github.com/dprint/dprint-plugin-ruff#readme",
+  "scripts": {
+    "test": "node index.test.js"
+  },
+  "devDependencies": {
+    "@dprint/formatter": "~0.1.4"
+  }
+}

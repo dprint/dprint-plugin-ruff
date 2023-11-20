@@ -1,0 +1,30 @@
+~~ indentWidth: 2, lineLength: 40, skipMagicTrailingComma: true, preview: true, quoteStyle: single ~~
+== should format ==
+def my_func():
+  print(   'test',  'asdfasdfasdfasdfasdfasdfasdfasdfasdf'   )
+
+[expect]
+def my_func():
+  print(
+    'test',
+    'asdfasdfasdfasdfasdfasdfasdfasdfasdf',
+  )
+
+== magic trailing comma ==
+def test(
+  a,
+  b,
+): pass
+
+[expect]
+def test(
+  a,
+  b,
+):
+  pass
+
+== should keep double when contains single ==
+b = "It's monday morning"
+
+[expect]
+b = "It's monday morning"
