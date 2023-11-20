@@ -6,4 +6,4 @@ const getBuffer = require("./index").getBuffer;
 const formatter = createFromBuffer(getBuffer());
 const result = formatter.formatText("file.py", `print(   "Hi"   )`);
 
-assert.strictEqual(result, `print("Hi")`);
+assert.strictEqual(result, `print("Hi")\n`);

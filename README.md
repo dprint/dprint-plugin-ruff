@@ -24,8 +24,8 @@ To add configuration, specify a `"ruff"` key in your dprint.json:
 {
   "ruff": {
     "indentStyle": "space",
-    "lineWidth": 100,
-    "indentWidth": 4
+    "lineLength": 100,
+    "indentWidth": 2
   },
   "plugins": [
     // ...etc...
