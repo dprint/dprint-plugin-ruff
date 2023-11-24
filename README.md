@@ -6,6 +6,8 @@ Adapter for [Ruff](https://github.com/astral-sh/ruff) for use as a formatting pl
 
 Formats .py and .pyi files.
 
+Note: For formatting .ipynb files, use the [Jupyter plugin](https://dprint.dev/plugins/jupyter) along with this plugin.
+
 ## Install
 
 [Install](https://dprint.dev/install/) and [setup](https://dprint.dev/setup/) dprint.

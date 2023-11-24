@@ -25,7 +25,7 @@ wasm = ["serde_json", "dprint-core/wasm"]
 
 [dependencies]
 anyhow = "1.0.51"
-dprint-core = { version = "0.63.3", features = ["formatting"] }
+dprint-core = { version = "0.63.3", default-features = false }
 ruff_formatter = { git = "https://github.com/astral-sh/ruff", tag = "v0.1.6" }
 ruff_python_ast = { git = "https://github.com/astral-sh/ruff", tag = "v0.1.6" }
 ruff_python_formatter = { git = "https://github.com/astral-sh/ruff", tag = "v0.1.6" }
