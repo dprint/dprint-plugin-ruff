@@ -41,8 +41,5 @@ fn test_specs() {
 fn should_fail_on_parse_error_js() {
   let config = Configuration::default();
   let err = format_text(&PathBuf::from("./file.py"), "$*&(#*$&#", &config).unwrap_err();
-  assert_eq!(
-    err.to_string(),
-    r#"source contains syntax errors: LexicalError { error: UnrecognizedToken { tok: '$' }, location: 0 }"#
-  );
+  assert_eq!(err.to_string(), r#"Got unexpected token $ at byte offset 0"#);
 }
