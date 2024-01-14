@@ -20,12 +20,23 @@ $.log("Found new version.");
 $.logStep("Updating Cargo.toml...");
 const isPatchBump = cargoTomlVersion.version.major === latestTag.version.major
   && cargoTomlVersion.version.minor === latestTag.version.minor;
-cargoToml.bumpCargoTomlVersion(isPatchBump ? "patch" : "minor");
 cargoToml.replaceAll(cargoTomlVersion.tag, latestTag.tag);
 
 // run the tests
 $.logStep("Running tests...");
 await $`cargo test`;
+
+if (Deno.args.includes("--skip-publish")) {
+  Deno.exit(0);
+}
+
+$.logStep(`Committing Ruff version bump commit...`);
+await $`git add .`;
+const message = `${isPatchBump ? "fix" : "feat"}: update to Ruff ${latestTag.tag}`;
+await $`git commit -m ${message}`;
+
+$.logStep("Bumping version in Cargo.toml...");
+cargoToml.bumpCargoTomlVersion(isPatchBump ? "patch" : "minor");
 
 // release
 const newVersion = cargoToml.version();
@@ -67,12 +78,12 @@ function tagToVersion(tag: string) {
   return semver.parse(tag.replace(/^v/, ""));
 }
 
-async function getGitTags() {
+async function getGitTags(): Promise<string[]> {
   const client = new Octokit();
   const response = await client.request("GET /repos/{owner}/{repo}/tags", {
     owner: "astral-sh",
     repo: "ruff",
     per_page: 100,
   });
-  return response.data.map((item) => item.name);
+  return response.data.map((item: { name: string }) => item.name);
 }
