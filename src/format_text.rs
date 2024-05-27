@@ -60,3 +60,15 @@ fn resolve_options(file_path: &Path, config: &Configuration) -> PyFormatOptions 
   }
   options
 }
+
+#[cfg(test)]
+mod test {
+  #[test]
+  fn strips_bom() {
+    let input = "\u{FEFF}print('hello')";
+    let config = crate::configuration::Configuration::default();
+    let file_path = std::path::Path::new("test.py");
+    let result = super::format_text(file_path, input, &config).unwrap().unwrap();
+    assert_eq!(result, "print(\"hello\")\n");
+  }
+}
