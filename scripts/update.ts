@@ -16,6 +16,12 @@ if (cargoTomlVersion.tag === latestTag.tag) {
   Deno.exit(0);
 }
 
+try {
+  rootDirPath.join("Cargo.lock").removeSync();
+} catch {
+  // ignore
+}
+
 $.log("Found new version.");
 $.logStep("Updating Cargo.toml...");
 const isPatchBump = cargoTomlVersion.version.major === latestTag.version.major
