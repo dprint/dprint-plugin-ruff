@@ -74,6 +74,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 
 [[package]]
+name = "arc-swap"
+version = "1.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69f7f8c3906b62b754cd5326047894316021dcfe5a194c8ea52bdd94934a3457"
+
+[[package]]
 name = "autocfg"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -87,9 +93,9 @@ checksum = "1b8e56985ec62d17e9c1001dc89c88ecd7dc08e47eba5ec7c29c7b5eeecde967"
 
 [[package]]
 name = "boxcar"
-version = "0.2.12"
+version = "0.2.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66bb12751a83493ef4b8da1120451a262554e216a247f14b48cb5e8fe7ed8bdf"
+checksum = "26c4925bc979b677330a8c7fe7a8c94af2dbb4a2d37b4a20a80d884400f46baa"
 
 [[package]]
 name = "bstr"
@@ -424,6 +430,7 @@ dependencies = [
 [[package]]
 name = "getrandom"
 version = "0.3.3"
+source = "git+https://github.com/rust-random/getrandom?rev=5ecab629385174c842b19716e90b0c8896790ddc#5ecab629385174c842b19716e90b0c8896790ddc"
 dependencies = [
  "cfg-if",
  "libc",
@@ -497,6 +504,15 @@ dependencies = [
  "equivalent",
  "hashbrown 0.15.3",
  "serde",
+]
+
+[[package]]
+name = "intrusive-collections"
+version = "0.9.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "189d0897e4cbe8c75efedf3502c18c887b05046e59d28404d4d8e46cbc4d1e86"
+dependencies = [
+ "memoffset",
 ]
 
 [[package]]
@@ -576,6 +592,15 @@ name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
+
+[[package]]
+name = "memoffset"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a"
+dependencies = [
+ "autocfg",
+]
 
 [[package]]
 name = "once_cell"
@@ -825,7 +850,7 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 [[package]]
 name = "ruff_annotate_snippets"
 version = "0.1.0"
-source = "git+https://github.com/dsherret/ruff?branch=fix_ruff_wasm_js_feature#1baf7815470e20b677541b622360fd424fc95b15"
+source = "git+https://github.com/astral-sh/ruff?tag=0.12.1#32c54189cb45a9d0409a1140265ce6d5fcec214d"
 dependencies = [
  "anstyle",
  "memchr",
@@ -835,7 +860,7 @@ dependencies = [
 [[package]]
 name = "ruff_cache"
 version = "0.0.0"
-source = "git+https://github.com/dsherret/ruff?branch=fix_ruff_wasm_js_feature#1baf7815470e20b677541b622360fd424fc95b15"
+source = "git+https://github.com/astral-sh/ruff?tag=0.12.1#32c54189cb45a9d0409a1140265ce6d5fcec214d"
 dependencies = [
  "filetime",
  "glob",
@@ -848,9 +873,10 @@ dependencies = [
 [[package]]
 name = "ruff_db"
 version = "0.0.0"
-source = "git+https://github.com/dsherret/ruff?branch=fix_ruff_wasm_js_feature#1baf7815470e20b677541b622360fd424fc95b15"
+source = "git+https://github.com/astral-sh/ruff?tag=0.12.1#32c54189cb45a9d0409a1140265ce6d5fcec214d"
 dependencies = [
  "anstyle",
+ "arc-swap",
  "camino",
  "countme",
  "dashmap",
@@ -877,18 +903,16 @@ dependencies = [
 [[package]]
 name = "ruff_diagnostics"
 version = "0.0.0"
-source = "git+https://github.com/dsherret/ruff?branch=fix_ruff_wasm_js_feature#1baf7815470e20b677541b622360fd424fc95b15"
+source = "git+https://github.com/astral-sh/ruff?tag=0.12.1#32c54189cb45a9d0409a1140265ce6d5fcec214d"
 dependencies = [
- "anyhow",
  "is-macro",
- "log",
  "ruff_text_size",
 ]
 
 [[package]]
 name = "ruff_formatter"
 version = "0.0.0"
-source = "git+https://github.com/dsherret/ruff?branch=fix_ruff_wasm_js_feature#1baf7815470e20b677541b622360fd424fc95b15"
+source = "git+https://github.com/astral-sh/ruff?tag=0.12.1#32c54189cb45a9d0409a1140265ce6d5fcec214d"
 dependencies = [
  "drop_bomb",
  "ruff_cache",
@@ -904,7 +928,7 @@ dependencies = [
 [[package]]
 name = "ruff_macros"
 version = "0.0.0"
-source = "git+https://github.com/dsherret/ruff?branch=fix_ruff_wasm_js_feature#1baf7815470e20b677541b622360fd424fc95b15"
+source = "git+https://github.com/astral-sh/ruff?tag=0.12.1#32c54189cb45a9d0409a1140265ce6d5fcec214d"
 dependencies = [
  "heck",
  "itertools",
@@ -917,7 +941,7 @@ dependencies = [
 [[package]]
 name = "ruff_notebook"
 version = "0.0.0"
-source = "git+https://github.com/dsherret/ruff?branch=fix_ruff_wasm_js_feature#1baf7815470e20b677541b622360fd424fc95b15"
+source = "git+https://github.com/astral-sh/ruff?tag=0.12.1#32c54189cb45a9d0409a1140265ce6d5fcec214d"
 dependencies = [
  "anyhow",
  "itertools",
@@ -935,7 +959,7 @@ dependencies = [
 [[package]]
 name = "ruff_python_ast"
 version = "0.0.0"
-source = "git+https://github.com/dsherret/ruff?branch=fix_ruff_wasm_js_feature#1baf7815470e20b677541b622360fd424fc95b15"
+source = "git+https://github.com/astral-sh/ruff?tag=0.12.1#32c54189cb45a9d0409a1140265ce6d5fcec214d"
 dependencies = [
  "aho-corasick",
  "bitflags",
@@ -949,12 +973,13 @@ dependencies = [
  "ruff_text_size",
  "rustc-hash",
  "serde",
+ "thiserror",
 ]
 
 [[package]]
 name = "ruff_python_formatter"
 version = "0.0.0"
-source = "git+https://github.com/dsherret/ruff?branch=fix_ruff_wasm_js_feature#1baf7815470e20b677541b622360fd424fc95b15"
+source = "git+https://github.com/astral-sh/ruff?tag=0.12.1#32c54189cb45a9d0409a1140265ce6d5fcec214d"
 dependencies = [
  "anyhow",
  "clap",
@@ -983,7 +1008,7 @@ dependencies = [
 [[package]]
 name = "ruff_python_parser"
 version = "0.0.0"
-source = "git+https://github.com/dsherret/ruff?branch=fix_ruff_wasm_js_feature#1baf7815470e20b677541b622360fd424fc95b15"
+source = "git+https://github.com/astral-sh/ruff?tag=0.12.1#32c54189cb45a9d0409a1140265ce6d5fcec214d"
 dependencies = [
  "bitflags",
  "bstr",
@@ -1002,7 +1027,7 @@ dependencies = [
 [[package]]
 name = "ruff_python_trivia"
 version = "0.0.0"
-source = "git+https://github.com/dsherret/ruff?branch=fix_ruff_wasm_js_feature#1baf7815470e20b677541b622360fd424fc95b15"
+source = "git+https://github.com/astral-sh/ruff?tag=0.12.1#32c54189cb45a9d0409a1140265ce6d5fcec214d"
 dependencies = [
  "itertools",
  "ruff_source_file",
@@ -1013,7 +1038,7 @@ dependencies = [
 [[package]]
 name = "ruff_source_file"
 version = "0.0.0"
-source = "git+https://github.com/dsherret/ruff?branch=fix_ruff_wasm_js_feature#1baf7815470e20b677541b622360fd424fc95b15"
+source = "git+https://github.com/astral-sh/ruff?tag=0.12.1#32c54189cb45a9d0409a1140265ce6d5fcec214d"
 dependencies = [
  "memchr",
  "ruff_text_size",
@@ -1023,7 +1048,7 @@ dependencies = [
 [[package]]
 name = "ruff_text_size"
 version = "0.0.0"
-source = "git+https://github.com/dsherret/ruff?branch=fix_ruff_wasm_js_feature#1baf7815470e20b677541b622360fd424fc95b15"
+source = "git+https://github.com/astral-sh/ruff?tag=0.12.1#32c54189cb45a9d0409a1140265ce6d5fcec214d"
 dependencies = [
  "serde",
 ]
@@ -1048,15 +1073,16 @@ checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
 
 [[package]]
 name = "salsa"
-version = "0.21.1"
-source = "git+https://github.com/salsa-rs/salsa.git?rev=7edce6e248f35c8114b4b021cdb474a3fb2813b3#7edce6e248f35c8114b4b021cdb474a3fb2813b3"
+version = "0.22.0"
+source = "git+https://github.com/salsa-rs/salsa.git?rev=09627e450566f894956710a3fd923dc80462ae6d#09627e450566f894956710a3fd923dc80462ae6d"
 dependencies = [
  "boxcar",
  "crossbeam-queue",
- "dashmap",
+ "crossbeam-utils",
  "hashbrown 0.15.3",
  "hashlink",
  "indexmap",
+ "intrusive-collections",
  "parking_lot",
  "portable-atomic",
  "rayon",
@@ -1070,15 +1096,14 @@ dependencies = [
 
 [[package]]
 name = "salsa-macro-rules"
-version = "0.21.1"
-source = "git+https://github.com/salsa-rs/salsa.git?rev=7edce6e248f35c8114b4b021cdb474a3fb2813b3#7edce6e248f35c8114b4b021cdb474a3fb2813b3"
+version = "0.22.0"
+source = "git+https://github.com/salsa-rs/salsa.git?rev=09627e450566f894956710a3fd923dc80462ae6d#09627e450566f894956710a3fd923dc80462ae6d"
 
 [[package]]
 name = "salsa-macros"
-version = "0.21.1"
-source = "git+https://github.com/salsa-rs/salsa.git?rev=7edce6e248f35c8114b4b021cdb474a3fb2813b3#7edce6e248f35c8114b4b021cdb474a3fb2813b3"
+version = "0.22.0"
+source = "git+https://github.com/salsa-rs/salsa.git?rev=09627e450566f894956710a3fd923dc80462ae6d#09627e450566f894956710a3fd923dc80462ae6d"
 dependencies = [
- "heck",
  "proc-macro2",
  "quote",
  "syn",
