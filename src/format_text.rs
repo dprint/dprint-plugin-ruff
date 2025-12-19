@@ -1,23 +1,19 @@
-use std::num::NonZeroU16;
 use std::num::NonZeroU8;
+use std::num::NonZeroU16;
 use std::path::Path;
 
 use crate::configuration::Configuration;
 use anyhow::Result;
 use ruff_formatter::printer::LineEnding;
-use ruff_python_formatter::format_module_source;
 use ruff_python_formatter::PyFormatOptions;
 use ruff_python_formatter::QuoteStyle;
+use ruff_python_formatter::format_module_source;
 
 pub fn format_text(file_path: &Path, input_text: &str, config: &Configuration) -> Result<Option<String>> {
   let options = resolve_options(file_path, config);
   let printed = format_module_source(input_text, options)?;
   let code = printed.into_code();
-  if code == input_text {
-    Ok(None)
-  } else {
-    Ok(Some(code))
-  }
+  if code == input_text { Ok(None) } else { Ok(Some(code)) }
 }
 
 fn resolve_options(file_path: &Path, config: &Configuration) -> PyFormatOptions {
