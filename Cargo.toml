@@ -2,7 +2,7 @@
 name = "dprint-plugin-ruff"
 version = "0.6.9"
 authors = ["David Sherret <dsherret@gmail.com>"]
-edition = "2021"
+edition = "2024"
 homepage = "https://github.com/dprint/dprint-plugin-ruff"
 keywords = ["formatting", "formatter", "ruff"]
 license = "MIT"

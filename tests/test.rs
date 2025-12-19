@@ -5,8 +5,8 @@ use std::path::PathBuf;
 
 use dprint_core::configuration::*;
 use dprint_development::*;
-use dprint_plugin_ruff::configuration::resolve_config;
 use dprint_plugin_ruff::configuration::Configuration;
+use dprint_plugin_ruff::configuration::resolve_config;
 use dprint_plugin_ruff::*;
 use pretty_assertions::assert_eq;
 
