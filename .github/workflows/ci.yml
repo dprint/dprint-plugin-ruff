@@ -19,7 +19,7 @@ jobs:
       RUST_BACKTRACE: full
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: dsherret/rust-toolchain-file@v1
     - name: Install wasm32 target
       if: matrix.config.kind == 'test_release'
@@ -49,10 +49,10 @@ jobs:
       run: echo ::set-output name=TAG_VERSION::${GITHUB_REF/refs\/tags\//}
 
     # NPM
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v6
       if: matrix.config.kind == 'test_release'
       with:
-        node-version: '22.x'
+        node-version: '24.x'
         registry-url: 'https://registry.npmjs.org'
 
     - name: Setup and test npm deployment
@@ -60,27 +60,8 @@ jobs:
       run: |
         cd deployment/npm
         npm install
-        node setup.js ${{ steps.get_tag_version.outputs.TAG_VERSION }}
+        node setup.js
         npm run test
-
-    - name: npm publish
-      if: matrix.config.kind == 'test_release' && startsWith(github.ref, 'refs/tags/')
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      run: |
-        cd deployment/npm
-        npm publish --access public
-        git reset --hard
-
-      # CARGO PUBLISH
-    # temporarily disabled until Ruff publishes to crates.io
-    # - name: Cargo login
-    #   if: matrix.config.kind == 'test_release' && startsWith(github.ref, 'refs/tags/')
-    #   run: cargo login ${{ secrets.CRATES_TOKEN }}
-
-    # - name: Cargo publish
-    #   if: matrix.config.kind == 'test_release' && startsWith(github.ref, 'refs/tags/')
-    #   run: cargo publish
 
       # GITHUB RELEASE
     - uses: denoland/setup-deno@v2
@@ -97,7 +78,7 @@ jobs:
         # create release notes
         deno run -A ./scripts/generate_release_notes.ts ${{ steps.get_tag_version.outputs.TAG_VERSION }} > ${{ github.workspace }}-CHANGELOG.txt
     - name: Release
-      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
+      uses: softprops/action-gh-release@v2
       if: matrix.config.kind == 'test_release' && startsWith(github.ref, 'refs/tags/')
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

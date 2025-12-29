@@ -1,4 +1,4 @@
-use super::configuration::{Configuration, resolve_config};
+use super::configuration::{resolve_config, Configuration};
 
 use dprint_core::configuration::{ConfigKeyMap, GlobalConfiguration, ResolveConfigurationResult};
 use dprint_core::generate_plugin_code;
