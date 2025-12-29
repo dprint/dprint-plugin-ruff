@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           token: ${{ secrets.GH_DPRINTBOT_PAT }}
 
@@ -28,7 +28,7 @@ jobs:
           git config user.name "dprintbot"
           deno run -A ./scripts/update.ts
 
-  # This is necessary to prevent GH automatically dsiabling this workflow after 60 days.
+  # This is necessary to prevent GH automatically disabling this workflow after 60 days.
   workflow-keepalive:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest

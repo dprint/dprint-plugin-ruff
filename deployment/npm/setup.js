@@ -3,22 +3,25 @@ const fs = require("fs");
 const path = require("path");
 const args = process.argv.slice(2);
 const wasmPath = path.join(__dirname, "../../target/wasm32-unknown-unknown/release/dprint_plugin_ruff.wasm");
-const wasmBytes = fs.readFileSync(wasmPath);
+const targetPath = path.join(__dirname, "plugin.wasm");
 
-// todo(dsherret): why is this encoding a buffer in a JS file? Why
-// doesn't it just include the wasm file in the distribution?
-// Problem for another day.
-let output = "module.exports.encodedBuffer = \"";
-output += wasmBytes.toString("base64");
-output += "\";\n";
-
-fs.writeFileSync(path.join(__dirname, "buffer.generated.js"), output);
+fs.copyFileSync(wasmPath, targetPath);
 
 if (args.length > 0) {
   // update the version based on the first argument
   const packageJsonPath = path.join(__dirname, "package.json");
   const packageJsonText = fs.readFileSync(packageJsonPath, "utf8");
   const packageJson = JSON.parse(packageJsonText);
-  packageJson.version = args[0];
+  if (args[0] === "sync-version") {
+    const cargoTomlPath = path.join(__dirname, "../../Cargo.toml");
+    const cargoTomlText = fs.readFileSync(cargoTomlPath, "utf8");
+    const versionMatch = cargoTomlText.match(/^version\s*=\s*"([^"]+)"/m);
+    if (!versionMatch) {
+      throw new Error("Could not find version in Cargo.toml");
+    }
+    packageJson.version = versionMatch[1];
+  } else {
+    packageJson.version = args[0];
+  }
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, undefined, 2) + "\n");
 }
