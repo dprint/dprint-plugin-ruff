@@ -23,6 +23,8 @@ try {
 }
 
 $.log("Found new version.");
+$.logStep("Updating rust-toolchain.toml...");
+await updateRustToolchain(latestTag.tag);
 $.logStep("Updating Cargo.toml...");
 const isPatchBump = cargoTomlVersion.version.major === latestTag.version.major
   && cargoTomlVersion.version.minor === latestTag.version.minor;
@@ -82,6 +84,29 @@ async function getLatestRuffTag() {
 
 function tagToVersion(tag: string) {
   return semver.parse(tag.replace(/^v/, ""));
+}
+
+async function updateRustToolchain(tag: string) {
+  const content = await $.request(
+    `https://raw.githubusercontent.com/astral-sh/ruff/${tag}/rust-toolchain.toml`,
+  ).text();
+  const match = content.match(/channel\s*=\s*"([^"]+)"/);
+  if (match == null) {
+    throw new Error("Could not find channel in ruff's rust-toolchain.toml.");
+  }
+  const ruffRustVersion = match[1];
+  const toolchainPath = rootDirPath.join("rust-toolchain.toml");
+  const localContent = toolchainPath.readTextSync();
+  const localMatch = localContent.match(/channel\s*=\s*"([^"]+)"/);
+  if (localMatch == null) {
+    throw new Error("Could not find channel in local rust-toolchain.toml.");
+  }
+  if (localMatch[1] !== ruffRustVersion) {
+    $.log(`Updating Rust toolchain: ${localMatch[1]} -> ${ruffRustVersion}`);
+    toolchainPath.writeTextSync(localContent.replace(localMatch[0], `channel = "${ruffRustVersion}"`));
+  } else {
+    $.log(`Rust toolchain already at ${ruffRustVersion}.`);
+  }
 }
 
 async function getGitTags(): Promise<string[]> {
