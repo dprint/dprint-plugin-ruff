@@ -15,7 +15,9 @@ Note: For formatting .ipynb files, use the [Jupyter plugin](https://dprint.dev/p
 Then in your project's directory with a dprint.json file, run:
 
 ```shellsession
-dprint config add ruff
+dprint add ruff
+# or install from npm
+dprint add npm:@dprint/ruff
 ```
 
 ## Configuration
