@@ -48,8 +48,8 @@ fn resolve_options(file_path: &Path, config: &Configuration) -> PyFormatOptions 
   }
   if let Some(value) = config.skip_magic_trailing_comma {
     options = options.with_magic_trailing_comma(match value {
-      true => ruff_python_formatter::MagicTrailingComma::Respect,
-      false => ruff_python_formatter::MagicTrailingComma::Ignore,
+      true => ruff_python_formatter::MagicTrailingComma::Ignore,
+      false => ruff_python_formatter::MagicTrailingComma::Respect,
     });
   }
   if let Some(value) = config.preview {

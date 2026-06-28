@@ -17,10 +17,7 @@ def test(
 ): pass
 
 [expect]
-def test(
-  a,
-  b,
-):
+def test(a, b):
   pass
 
 == should keep double when contains single ==
