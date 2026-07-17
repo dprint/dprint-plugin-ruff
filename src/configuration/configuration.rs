@@ -1,7 +1,29 @@
 use dprint_core::configuration::ParseConfigurationError;
-use dprint_core::generate_str_to_from;
 use serde::Deserialize;
 use serde::Serialize;
+
+macro_rules! generate_str_to_from {
+  ($enum_name:ident, $([$member_name:ident, $string_value:expr]),* ) => {
+    impl std::str::FromStr for $enum_name {
+      type Err = ParseConfigurationError;
+
+      fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+          $($string_value => Ok(Self::$member_name)),*,
+          _ => Err(ParseConfigurationError(String::from(s))),
+        }
+      }
+    }
+
+    impl std::fmt::Display for $enum_name {
+      fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+          $(Self::$member_name => f.write_str($string_value)),*,
+        }
+      }
+    }
+  };
+}
 
 #[derive(Clone, PartialEq, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
