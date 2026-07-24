@@ -1,6 +1,6 @@
 [package]
 name = "dprint-plugin-ruff"
-version = "0.7.22"
+version = "0.8.0"
 authors = ["David Sherret <dsherret@gmail.com>"]
 edition = "2024"
 homepage = "https://github.com/dprint/dprint-plugin-ruff"
