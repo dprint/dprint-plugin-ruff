@@ -16,8 +16,6 @@ Then in your project's directory with a dprint.json file, run:
 
 ```shellsession
 dprint add ruff
-# or install from npm
-dprint add npm:@dprint/ruff
 ```
 
 ## Configuration
