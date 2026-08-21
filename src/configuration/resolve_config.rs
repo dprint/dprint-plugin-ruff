@@ -41,7 +41,7 @@ pub fn resolve_config(
     line_ending: get_nullable_value(&mut config, "lineEnding", &mut diagnostics).or(global_config.new_line_kind.map(
       |l| match l {
         // not ideal
-        NewLineKind::Auto | NewLineKind::LineFeed | NewLineKind::System => LineEnding::LineFeed,
+        NewLineKind::Auto | NewLineKind::LineFeed => LineEnding::LineFeed,
         NewLineKind::CarriageReturnLineFeed => LineEnding::CarriageReturnLineFeed,
       },
     )),
