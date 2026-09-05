@@ -1,6 +1,6 @@
 # dprint-plugin-ruff
 
-[![](https://img.shields.io/crates/v/dprint-plugin-ruff.svg)](https://crates.io/crates/dprint-plugin-ruff) [![CI](https://github.com/dprint/dprint-plugin-ruff/workflows/CI/badge.svg)](https://github.com/dprint/dprint-plugin-ruff/actions?query=workflow%3ACI)
+[![](https://img.shields.io/crates/v/dprint-plugin-ruff.svg)](https://crates.io/crates/dprint-plugin-ruff) [![npm version](https://img.shields.io/npm/v/@dprint/ruff.svg)](https://www.npmjs.com/package/@dprint/ruff) [![CI](https://github.com/dprint/dprint-plugin-ruff/workflows/CI/badge.svg)](https://github.com/dprint/dprint-plugin-ruff/actions?query=workflow%3ACI)
 
 Adapter for [Ruff](https://github.com/astral-sh/ruff) for use as a formatting plugin in [dprint](https://github.com/dprint/dprint).
 
