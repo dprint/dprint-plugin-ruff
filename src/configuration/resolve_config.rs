@@ -34,7 +34,7 @@ pub fn resolve_config(
     line_length: get_nullable_value(&mut config, "lineLength", &mut diagnostics).or(
       global_config
         .line_width
-        .map(|l| std::cmp::max(u16::MAX as u32, l) as u16),
+        .map(|l| std::cmp::min(u16::MAX as u32, l) as u16),
     ),
     indent_width: get_nullable_value(&mut config, "indentWidth", &mut diagnostics).or(global_config.indent_width),
     indent_style: get_nullable_value(&mut config, "indentStyle", &mut diagnostics),
