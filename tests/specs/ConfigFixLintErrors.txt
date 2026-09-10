@@ -1,0 +1,15 @@
+~~ {"fixLintErrors": {"unusedImport": true, "unsortedImports": true, "missingRequiredImport": true, "requiredImports": ["from __future__ import annotations"]}} ~~
+== should apply configured lint fixes together ==
+import sys
+import os
+import pathlib
+
+print(sys.version, os.getcwd())
+
+[expect]
+from __future__ import annotations
+
+import os
+import sys
+
+print(sys.version, os.getcwd())

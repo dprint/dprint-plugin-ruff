@@ -1,0 +1,8 @@
+~~ {"fixLintErrors": {"unusedImport": true, "missingRequiredImport": true, "requiredImports": ["import os"]}} ~~
+== should preserve an unused required import ==
+x = 1
+
+[expect]
+import os
+
+x = 1
