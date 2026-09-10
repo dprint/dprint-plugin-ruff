@@ -1,0 +1,11 @@
+~~ {"fixLintErrors": {"unusedImport": true}} ~~
+== should remove unused imports ==
+import os
+import sys
+
+print(sys.version)
+
+[expect]
+import sys
+
+print(sys.version)

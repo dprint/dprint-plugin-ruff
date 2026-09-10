@@ -1,0 +1,8 @@
+~~ {"fixLintErrors": {"missingRequiredImport": true, "requiredImports": ["from __future__ import annotations"]}} ~~
+== should add required imports ==
+x = 1
+
+[expect]
+from __future__ import annotations
+
+x = 1

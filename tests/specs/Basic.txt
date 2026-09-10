@@ -9,3 +9,11 @@ def my_func():
 == should format empty ==
 
 [expect]
+
+== should not apply lint fixes by default ==
+import z
+import os
+
+[expect]
+import z
+import os
