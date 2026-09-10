@@ -9,6 +9,7 @@ use dprint_plugin_ruff::configuration::resolve_config;
 use dprint_plugin_ruff::configuration::Configuration;
 use dprint_plugin_ruff::*;
 use pretty_assertions::assert_eq;
+use serde_json::json;
 
 #[test]
 fn test_specs() {
@@ -35,6 +36,36 @@ fn test_specs() {
     },
     move |_file_path, _file_text, _spec_config| panic!("Plugin does not support dprint-core tracing."),
   )
+}
+
+#[test]
+fn global_line_width_is_clamped_and_respects_plugin_override() {
+  let global_config = GlobalConfiguration {
+    line_width: Some(80),
+    ..Default::default()
+  };
+
+  assert_eq!(
+    resolve_config(ConfigKeyMap::new(), &global_config).config.line_length,
+    Some(80)
+  );
+
+  let oversized_global_config = GlobalConfiguration {
+    line_width: Some(u32::MAX),
+    ..Default::default()
+  };
+  assert_eq!(
+    resolve_config(ConfigKeyMap::new(), &oversized_global_config)
+      .config
+      .line_length,
+    Some(u16::MAX)
+  );
+
+  let plugin_config: ConfigKeyMap = serde_json::from_value(json!({ "lineLength": 100 })).unwrap();
+  assert_eq!(
+    resolve_config(plugin_config, &global_config).config.line_length,
+    Some(100)
+  );
 }
 
 #[test]
