@@ -1,0 +1,13 @@
+~~ {"fixLintErrors": {"unsortedImports": true}} ~~
+== should sort imports ==
+import requests
+import os
+from pathlib import Path
+from collections import defaultdict
+
+[expect]
+import os
+from collections import defaultdict
+from pathlib import Path
+
+import requests

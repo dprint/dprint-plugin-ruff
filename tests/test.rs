@@ -5,8 +5,8 @@ use std::path::PathBuf;
 
 use dprint_core::configuration::*;
 use dprint_development::*;
-use dprint_plugin_ruff::configuration::resolve_config;
 use dprint_plugin_ruff::configuration::Configuration;
+use dprint_plugin_ruff::configuration::resolve_config;
 use dprint_plugin_ruff::*;
 use pretty_assertions::assert_eq;
 use serde_json::json;
@@ -36,6 +36,29 @@ fn test_specs() {
     },
     move |_file_path, _file_text, _spec_config| panic!("Plugin does not support dprint-core tracing."),
   )
+}
+
+#[test]
+fn fix_lint_error_diagnostics_are_nested() {
+  let config: ConfigKeyMap = serde_json::from_value(json!({
+    "fixLintErrors": {
+      "unusedImport": {},
+      "requiredImports": {},
+    }
+  }))
+  .unwrap();
+
+  let result = resolve_config(config, &GlobalConfiguration::default());
+  let diagnostic_property_names: Vec<_> = result
+    .diagnostics
+    .iter()
+    .map(|diagnostic| diagnostic.property_name.as_str())
+    .collect();
+
+  assert_eq!(
+    diagnostic_property_names,
+    vec!["fixLintErrors.unusedImport", "fixLintErrors.requiredImports"]
+  );
 }
 
 #[test]

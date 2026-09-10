@@ -58,6 +58,36 @@
       "description": "Whether to enable preview mode. When preview mode is enabled, Ruff will use unstable rules, fixes, and formatting.",
       "type": "boolean",
       "default": false
+    },
+    "fixLintErrors": {
+      "description": "Whether to apply configured Ruff lint fixes.",
+      "type": "object",
+      "default": {},
+      "properties": {
+        "unusedImport": {
+          "description": "Whether to remove unused imports using Ruff's F401 rule.",
+          "type": "boolean",
+          "default": false
+        },
+        "unsortedImports": {
+          "description": "Whether to sort imports using Ruff's I001 rule.",
+          "type": "boolean",
+          "default": false
+        },
+        "missingRequiredImport": {
+          "description": "Whether to add missing required imports using Ruff's I002 rule.",
+          "type": "boolean",
+          "default": false
+        },
+        "requiredImports": {
+          "description": "Import statements to add when missingRequiredImport is enabled.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      }
     }
   }
 }
