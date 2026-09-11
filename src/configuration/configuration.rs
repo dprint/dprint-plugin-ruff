@@ -54,6 +54,15 @@ generate_str_to_from![QuoteStyle, [Single, "single"], [Double, "double"]];
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct FixLintErrors {
+  pub unused_import: Option<bool>,
+  pub unsorted_imports: Option<bool>,
+  pub missing_required_import: Option<bool>,
+  pub required_imports: Option<Vec<String>>,
+}
+
+#[derive(Default, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Configuration {
   pub indent_style: Option<IndentStyle>,
   pub line_length: Option<u16>,
@@ -62,4 +71,5 @@ pub struct Configuration {
   pub quote_style: Option<QuoteStyle>,
   pub skip_magic_trailing_comma: Option<bool>,
   pub preview: Option<bool>,
+  pub fix_lint_errors: Option<FixLintErrors>,
 }
