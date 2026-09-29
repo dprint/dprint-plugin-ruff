@@ -470,7 +470,7 @@ dependencies = [
 
 [[package]]
 name = "dprint-plugin-ruff"
-version = "0.8.9"
+version = "0.9.0"
 dependencies = [
  "anyhow",
  "dprint-core",
