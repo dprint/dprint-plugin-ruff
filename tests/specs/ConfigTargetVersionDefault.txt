@@ -1,0 +1,11 @@
+~~ {"lineLength": 50, "targetVersion": "default"} ~~
+== long with statement is parenthesized like the bundled Ruff default ==
+with module.first_context_manager() as first, module.second_context_manager() as second:
+    pass
+
+[expect]
+with (
+    module.first_context_manager() as first,
+    module.second_context_manager() as second,
+):
+    pass

@@ -1,14 +1,16 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
-use crate::configuration::Configuration;
+use crate::configuration::{Configuration, FixLintErrors, TargetVersion, parse_known_module};
 use anyhow::{Result, anyhow};
 use ruff_linter::line_width::{IndentWidth, LineLength};
 use ruff_linter::linter::lint_fix;
 use ruff_linter::registry::Rule;
+use ruff_linter::rules::isort::categorize::KnownModules;
 use ruff_linter::settings::LinterSettings;
 use ruff_linter::settings::flags::Noqa;
 use ruff_linter::settings::rule_table::RuleTable;
+use ruff_linter::settings::types::IdentifierPattern;
 use ruff_linter::settings::types::UnsafeFixes;
 use ruff_linter::source_kind::SourceKind;
 use ruff_python_ast::PySourceType;
@@ -16,7 +18,10 @@ use ruff_python_semantic::{NameImport, NameImports};
 use serde::de::{Deserialize, value::StrDeserializer};
 
 pub(crate) fn apply_lint_fixes(file_path: &Path, input_text: &str, config: &Configuration) -> Result<Option<String>> {
-  let enabled_rules = resolve_enabled_rules(config);
+  let Some(lint_config) = config.fix_lint_errors.as_ref() else {
+    return Ok(None);
+  };
+  let enabled_rules = resolve_enabled_rules(lint_config);
   if enabled_rules.is_empty() {
     return Ok(None);
   }
@@ -28,7 +33,7 @@ pub(crate) fn apply_lint_fixes(file_path: &Path, input_text: &str, config: &Conf
     code: input_text.to_owned(),
     is_stub: source_type.is_stub(),
   };
-  let settings = resolve_linter_settings(config, &enabled_rules)?;
+  let settings = resolve_linter_settings(config, lint_config, &enabled_rules)?;
   let result = lint_fix(
     file_path,
     None,
@@ -47,12 +52,8 @@ pub(crate) fn apply_lint_fixes(file_path: &Path, input_text: &str, config: &Conf
   }
 }
 
-fn resolve_enabled_rules(config: &Configuration) -> Vec<Rule> {
+fn resolve_enabled_rules(fix_lint_errors: &FixLintErrors) -> Vec<Rule> {
   let mut rules = Vec::new();
-  let Some(fix_lint_errors) = config.fix_lint_errors.as_ref() else {
-    return rules;
-  };
-
   if fix_lint_errors.unused_import == Some(true) {
     rules.push(Rule::UnusedImport);
   }
@@ -65,7 +66,11 @@ fn resolve_enabled_rules(config: &Configuration) -> Vec<Rule> {
   rules
 }
 
-fn resolve_linter_settings(config: &Configuration, enabled_rules: &[Rule]) -> Result<LinterSettings> {
+fn resolve_linter_settings(
+  config: &Configuration,
+  lint_config: &FixLintErrors,
+  enabled_rules: &[Rule],
+) -> Result<LinterSettings> {
   let mut rules = RuleTable::empty();
   for &rule in enabled_rules {
     rules.enable(rule, true);
@@ -86,21 +91,38 @@ fn resolve_linter_settings(config: &Configuration, enabled_rules: &[Rule]) -> Re
     ..LinterSettings::default()
   };
 
-  settings.isort.required_imports = resolve_required_imports(config)?;
+  settings.isort.required_imports = resolve_required_imports(lint_config)?;
+  if let Some(TargetVersion::Version(version)) = config.target_version {
+    settings.unresolved_target_version = version.into();
+  }
+
+  settings.isort.known_modules = KnownModules::new(
+    resolve_known_modules(lint_config.known_first_party.as_deref(), "knownFirstParty")?,
+    resolve_known_modules(lint_config.known_third_party.as_deref(), "knownThirdParty")?,
+    Vec::new(),
+    Vec::new(),
+    Default::default(),
+  );
 
   Ok(settings)
 }
 
-fn resolve_required_imports(config: &Configuration) -> Result<BTreeSet<NameImport>> {
-  let Some(required_imports) = config
-    .fix_lint_errors
-    .as_ref()
-    .and_then(|config| config.required_imports.as_ref())
-  else {
-    return Ok(BTreeSet::new());
-  };
+fn resolve_known_modules(modules: Option<&[String]>, key: &str) -> Result<Vec<IdentifierPattern>> {
+  modules
+    .unwrap_or_default()
+    .iter()
+    .enumerate()
+    .map(|(index, module)| {
+      parse_known_module(module).map_err(|message| anyhow!("Invalid fixLintErrors.{key}[{index}]: {message}"))
+    })
+    .collect()
+}
 
-  required_imports
+fn resolve_required_imports(lint_config: &FixLintErrors) -> Result<BTreeSet<NameImport>> {
+  lint_config
+    .required_imports
+    .as_deref()
+    .unwrap_or_default()
     .iter()
     .try_fold(BTreeSet::new(), |mut resolved_imports, required_import| {
       let imports = NameImports::deserialize(StrDeserializer::<serde::de::value::Error>::new(required_import))

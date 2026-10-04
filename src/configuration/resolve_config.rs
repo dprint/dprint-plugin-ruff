@@ -1,6 +1,7 @@
 use super::LineEnding;
 use super::{Configuration, FixLintErrors};
 use dprint_core::configuration::*;
+use ruff_linter::settings::types::IdentifierPattern;
 use ruff_python_semantic::NameImports;
 use serde::de::{Deserialize, value::StrDeserializer};
 
@@ -41,7 +42,24 @@ pub fn resolve_config(
         "missingRequiredImport",
         &mut fix_lint_errors_diagnostics,
       ),
-      required_imports: get_nullable_required_imports(&mut lint_config, &mut fix_lint_errors_diagnostics),
+      required_imports: get_nullable_string_array(
+        &mut lint_config,
+        "requiredImports",
+        &mut fix_lint_errors_diagnostics,
+        validate_required_import,
+      ),
+      known_first_party: get_nullable_string_array(
+        &mut lint_config,
+        "knownFirstParty",
+        &mut fix_lint_errors_diagnostics,
+        |value| parse_known_module(value).map(drop),
+      ),
+      known_third_party: get_nullable_string_array(
+        &mut lint_config,
+        "knownThirdParty",
+        &mut fix_lint_errors_diagnostics,
+        |value| parse_known_module(value).map(drop),
+      ),
     };
 
     fix_lint_errors_diagnostics.extend(get_unknown_property_diagnostics(lint_config));
@@ -73,6 +91,7 @@ pub fn resolve_config(
     quote_style: get_nullable_value(&mut config, "quoteStyle", &mut diagnostics),
     skip_magic_trailing_comma: get_nullable_value(&mut config, "skipMagicTrailingComma", &mut diagnostics),
     preview: get_nullable_value(&mut config, "preview", &mut diagnostics),
+    target_version: get_nullable_value(&mut config, "targetVersion", &mut diagnostics),
     fix_lint_errors,
   };
 
@@ -102,36 +121,45 @@ fn get_nullable_object(
   }
 }
 
-fn get_nullable_required_imports(
+fn get_nullable_string_array(
   config: &mut ConfigKeyMap,
+  key: &str,
   diagnostics: &mut Vec<ConfigurationDiagnostic>,
+  validate: impl Fn(&str) -> Result<(), String>,
 ) -> Option<Vec<String>> {
-  let required_imports = get_nullable_vec(
+  get_nullable_vec(
     config,
-    "requiredImports",
+    key,
     |value, index, diagnostics| match value.into_string() {
-      Some(value) => Some(value),
+      Some(value) => match validate(&value) {
+        Ok(()) => Some(value),
+        Err(message) => {
+          diagnostics.push(ConfigurationDiagnostic {
+            property_name: format!("{key}[{index}]"),
+            message,
+          });
+          None
+        }
+      },
       None => {
         diagnostics.push(ConfigurationDiagnostic {
-          property_name: format!("requiredImports[{index}]"),
+          property_name: format!("{key}[{index}]"),
           message: "Expected a string.".to_string(),
         });
         None
       }
     },
     diagnostics,
-  );
+  )
+}
 
-  if let Some(required_imports) = required_imports.as_ref() {
-    for (index, required_import) in required_imports.iter().enumerate() {
-      if let Err(error) = NameImports::deserialize(StrDeserializer::<serde::de::value::Error>::new(required_import)) {
-        diagnostics.push(ConfigurationDiagnostic {
-          property_name: format!("requiredImports[{index}]"),
-          message: format!("Invalid import statement: {error}"),
-        });
-      }
-    }
-  }
+/// Parses a `knownFirstParty`/`knownThirdParty` entry the same way Ruff does.
+pub(crate) fn parse_known_module(value: &str) -> Result<IdentifierPattern, String> {
+  IdentifierPattern::new(value).map_err(|error| error.to_string())
+}
 
-  required_imports
+fn validate_required_import(value: &str) -> Result<(), String> {
+  NameImports::deserialize(StrDeserializer::<serde::de::value::Error>::new(value))
+    .map(drop)
+    .map_err(|error| format!("Invalid import statement: {error}"))
 }

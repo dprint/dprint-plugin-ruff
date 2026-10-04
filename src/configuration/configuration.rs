@@ -52,6 +52,62 @@ pub enum QuoteStyle {
 
 generate_str_to_from![QuoteStyle, [Single, "single"], [Double, "double"]];
 
+#[derive(Clone, PartialEq, Copy, Debug)]
+pub enum TargetVersion {
+  Default,
+  Version(ruff_python_ast::PythonVersion),
+}
+
+fn py_name(version: ruff_python_ast::PythonVersion) -> String {
+  format!("py{}{}", version.major, version.minor)
+}
+
+impl TargetVersion {
+  /// All accepted config values: "default" followed by every Python version the bundled Ruff supports.
+  pub fn all_names() -> Vec<String> {
+    std::iter::once(Self::Default)
+      .chain(ruff_python_ast::PythonVersion::iter().map(Self::Version))
+      .map(|target_version| target_version.to_string())
+      .collect()
+  }
+}
+
+impl std::str::FromStr for TargetVersion {
+  type Err = ParseConfigurationError;
+
+  fn from_str(value: &str) -> Result<Self, Self::Err> {
+    if value == "default" {
+      return Ok(Self::Default);
+    }
+    ruff_python_ast::PythonVersion::iter()
+      .find(|version| value == py_name(*version))
+      .map(Self::Version)
+      .ok_or_else(|| ParseConfigurationError(value.to_string()))
+  }
+}
+
+impl std::fmt::Display for TargetVersion {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Self::Default => write!(f, "default"),
+      Self::Version(version) => f.write_str(&py_name(*version)),
+    }
+  }
+}
+
+impl Serialize for TargetVersion {
+  fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+    serializer.serialize_str(&self.to_string())
+  }
+}
+
+impl<'de> Deserialize<'de> for TargetVersion {
+  fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    use serde::de::Error;
+    String::deserialize(deserializer)?.parse().map_err(D::Error::custom)
+  }
+}
+
 #[derive(Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FixLintErrors {
@@ -59,6 +115,8 @@ pub struct FixLintErrors {
   pub unsorted_imports: Option<bool>,
   pub missing_required_import: Option<bool>,
   pub required_imports: Option<Vec<String>>,
+  pub known_first_party: Option<Vec<String>>,
+  pub known_third_party: Option<Vec<String>>,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -71,5 +129,6 @@ pub struct Configuration {
   pub quote_style: Option<QuoteStyle>,
   pub skip_magic_trailing_comma: Option<bool>,
   pub preview: Option<bool>,
+  pub target_version: Option<TargetVersion>,
   pub fix_lint_errors: Option<FixLintErrors>,
 }

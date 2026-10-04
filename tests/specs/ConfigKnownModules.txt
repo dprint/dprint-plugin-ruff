@@ -1,0 +1,13 @@
+~~ {"fixLintErrors": {"unsortedImports": true, "knownFirstParty": ["app.*", "requests"], "knownThirdParty": ["os"]}} ~~
+== explicit module sections override stdlib and default third-party ==
+import requests
+import os
+import app.core
+import other.external
+
+[expect]
+import os
+import other.external
+
+import app.core
+import requests
