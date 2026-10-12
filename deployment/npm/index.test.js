@@ -41,14 +41,3 @@ assertFormat(
   versionInput,
   "import os\nimport tomllib\n\nimport requests\n",
 );
-
-formatter.setConfig({}, {
-  fixLintErrors: { unsortedImports: true },
-});
-const omittedVersion = formatter.formatText({ filePath: "file.py", fileText: versionInput });
-
-assertFormat(
-  { targetVersion: "default", fixLintErrors: { unsortedImports: true } },
-  versionInput,
-  omittedVersion,
-);

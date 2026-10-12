@@ -1,4 +1,9 @@
+use std::sync::Arc;
+use std::sync::OnceLock;
+
 use dprint_core::configuration::ParseConfigurationError;
+use ruff_linter::settings::LinterSettings;
+use ruff_python_ast::PythonVersion;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -53,22 +58,12 @@ pub enum QuoteStyle {
 generate_str_to_from![QuoteStyle, [Single, "single"], [Double, "double"]];
 
 #[derive(Clone, PartialEq, Copy, Debug)]
-pub enum TargetVersion {
-  Default,
-  Version(ruff_python_ast::PythonVersion),
-}
-
-fn py_name(version: ruff_python_ast::PythonVersion) -> String {
-  format!("py{}{}", version.major, version.minor)
-}
+pub struct TargetVersion(pub PythonVersion);
 
 impl TargetVersion {
-  /// All accepted config values: "default" followed by every Python version the bundled Ruff supports.
+  /// All accepted config values: every Python version the bundled Ruff supports.
   pub fn all_names() -> Vec<String> {
-    std::iter::once(Self::Default)
-      .chain(ruff_python_ast::PythonVersion::iter().map(Self::Version))
-      .map(|target_version| target_version.to_string())
-      .collect()
+    PythonVersion::iter().map(|version| Self(version).to_string()).collect()
   }
 }
 
@@ -76,22 +71,16 @@ impl std::str::FromStr for TargetVersion {
   type Err = ParseConfigurationError;
 
   fn from_str(value: &str) -> Result<Self, Self::Err> {
-    if value == "default" {
-      return Ok(Self::Default);
-    }
-    ruff_python_ast::PythonVersion::iter()
-      .find(|version| value == py_name(*version))
-      .map(Self::Version)
+    PythonVersion::iter()
+      .map(Self)
+      .find(|target_version| value == target_version.to_string())
       .ok_or_else(|| ParseConfigurationError(value.to_string()))
   }
 }
 
 impl std::fmt::Display for TargetVersion {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    match self {
-      Self::Default => write!(f, "default"),
-      Self::Version(version) => f.write_str(&py_name(*version)),
-    }
+    write!(f, "py{}{}", self.0.major, self.0.minor)
   }
 }
 
@@ -131,4 +120,32 @@ pub struct Configuration {
   pub preview: Option<bool>,
   pub target_version: Option<TargetVersion>,
   pub fix_lint_errors: Option<FixLintErrors>,
+  #[doc(hidden)]
+  #[serde(skip)]
+  pub linter_settings: LinterSettingsCache,
+}
+
+/// Ruff linter settings resolved from a `Configuration` the first time it is used to
+/// format a file, so they are not rebuilt for every file.
+///
+/// Changing a `Configuration` after it has formatted a file does not update these settings.
+#[derive(Default, Clone)]
+pub struct LinterSettingsCache(OnceLock<Result<Option<Arc<LinterSettings>>, String>>);
+
+impl LinterSettingsCache {
+  /// Gets the settings, or `None` when no lint fixes are enabled.
+  pub(crate) fn get_or_resolve(
+    &self,
+    resolve: impl FnOnce() -> anyhow::Result<Option<LinterSettings>>,
+  ) -> anyhow::Result<Option<&LinterSettings>> {
+    let resolved = self.0.get_or_init(|| {
+      resolve()
+        .map(|settings| settings.map(Arc::new))
+        .map_err(|error| error.to_string())
+    });
+    match resolved {
+      Ok(settings) => Ok(settings.as_deref()),
+      Err(message) => Err(anyhow::anyhow!("{message}")),
+    }
+  }
 }

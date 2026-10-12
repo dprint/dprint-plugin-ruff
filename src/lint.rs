@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
-use crate::configuration::{Configuration, FixLintErrors, TargetVersion, parse_known_module};
+use crate::configuration::{Configuration, FixLintErrors, parse_known_module};
 use anyhow::{Result, anyhow};
 use ruff_linter::line_width::{IndentWidth, LineLength};
 use ruff_linter::linter::lint_fix;
@@ -18,28 +18,24 @@ use ruff_python_semantic::{NameImport, NameImports};
 use serde::de::{Deserialize, value::StrDeserializer};
 
 pub(crate) fn apply_lint_fixes(file_path: &Path, input_text: &str, config: &Configuration) -> Result<Option<String>> {
-  let Some(lint_config) = config.fix_lint_errors.as_ref() else {
+  let Some(settings) = config
+    .linter_settings
+    .get_or_resolve(|| resolve_linter_settings(config))?
+  else {
     return Ok(None);
   };
-  let enabled_rules = resolve_enabled_rules(lint_config);
-  if enabled_rules.is_empty() {
-    return Ok(None);
-  }
-
-  initialize_ruff_linter();
 
   let source_type = PySourceType::from(file_path);
   let source_kind = SourceKind::Python {
     code: input_text.to_owned(),
     is_stub: source_type.is_stub(),
   };
-  let settings = resolve_linter_settings(config, lint_config, &enabled_rules)?;
   let result = lint_fix(
     file_path,
     None,
     Noqa::Enabled,
     UnsafeFixes::default(),
-    &settings,
+    settings,
     &source_kind,
     source_type,
   )?;
@@ -52,27 +48,20 @@ pub(crate) fn apply_lint_fixes(file_path: &Path, input_text: &str, config: &Conf
   }
 }
 
-fn resolve_enabled_rules(fix_lint_errors: &FixLintErrors) -> Vec<Rule> {
-  let mut rules = Vec::new();
-  if fix_lint_errors.unused_import == Some(true) {
-    rules.push(Rule::UnusedImport);
+/// Resolves the linter settings, or `None` when no lint fixes are enabled.
+fn resolve_linter_settings(config: &Configuration) -> Result<Option<LinterSettings>> {
+  let Some(lint_config) = config.fix_lint_errors.as_ref() else {
+    return Ok(None);
+  };
+  let enabled_rules = resolve_enabled_rules(lint_config);
+  if enabled_rules.is_empty() {
+    return Ok(None);
   }
-  if fix_lint_errors.unsorted_imports == Some(true) {
-    rules.push(Rule::UnsortedImports);
-  }
-  if fix_lint_errors.missing_required_import == Some(true) {
-    rules.push(Rule::MissingRequiredImport);
-  }
-  rules
-}
 
-fn resolve_linter_settings(
-  config: &Configuration,
-  lint_config: &FixLintErrors,
-  enabled_rules: &[Rule],
-) -> Result<LinterSettings> {
+  initialize_ruff_linter();
+
   let mut rules = RuleTable::empty();
-  for &rule in enabled_rules {
+  for rule in enabled_rules {
     rules.enable(rule, true);
   }
 
@@ -92,8 +81,8 @@ fn resolve_linter_settings(
   };
 
   settings.isort.required_imports = resolve_required_imports(lint_config)?;
-  if let Some(TargetVersion::Version(version)) = config.target_version {
-    settings.unresolved_target_version = version.into();
+  if let Some(target_version) = config.target_version {
+    settings.unresolved_target_version = target_version.0.into();
   }
 
   settings.isort.known_modules = KnownModules::new(
@@ -104,7 +93,21 @@ fn resolve_linter_settings(
     Default::default(),
   );
 
-  Ok(settings)
+  Ok(Some(settings))
+}
+
+fn resolve_enabled_rules(fix_lint_errors: &FixLintErrors) -> Vec<Rule> {
+  let mut rules = Vec::new();
+  if fix_lint_errors.unused_import == Some(true) {
+    rules.push(Rule::UnusedImport);
+  }
+  if fix_lint_errors.unsorted_imports == Some(true) {
+    rules.push(Rule::UnsortedImports);
+  }
+  if fix_lint_errors.missing_required_import == Some(true) {
+    rules.push(Rule::MissingRequiredImport);
+  }
+  rules
 }
 
 fn resolve_known_modules(modules: Option<&[String]>, key: &str) -> Result<Vec<IdentifierPattern>> {

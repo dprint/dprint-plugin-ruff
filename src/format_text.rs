@@ -2,7 +2,7 @@ use std::num::NonZeroU8;
 use std::num::NonZeroU16;
 use std::path::Path;
 
-use crate::configuration::{Configuration, TargetVersion};
+use crate::configuration::Configuration;
 use anyhow::Result;
 use ruff_formatter::printer::LineEnding;
 use ruff_python_formatter::PyFormatOptions;
@@ -56,8 +56,8 @@ fn resolve_options(file_path: &Path, config: &Configuration) -> PyFormatOptions 
       false => ruff_python_formatter::PreviewMode::Disabled,
     });
   }
-  if let Some(TargetVersion::Version(version)) = config.target_version {
-    options = options.with_target_version(version);
+  if let Some(target_version) = config.target_version {
+    options = options.with_target_version(target_version.0);
   }
   options
 }
