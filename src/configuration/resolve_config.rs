@@ -93,6 +93,7 @@ pub fn resolve_config(
     preview: get_nullable_value(&mut config, "preview", &mut diagnostics),
     target_version: get_nullable_value(&mut config, "targetVersion", &mut diagnostics),
     fix_lint_errors,
+    linter_settings: Default::default(),
   };
 
   diagnostics.extend(get_unknown_property_diagnostics(config));

@@ -84,18 +84,15 @@ fn target_version_accepts_ruff_version_names() {
   ] {
     let result = resolve_config_from_json(json!({ "targetVersion": name }));
     assert!(result.diagnostics.is_empty(), "unexpected diagnostics for {name}");
-    assert_eq!(result.config.target_version, Some(TargetVersion::Version(version)));
+    assert_eq!(result.config.target_version, Some(TargetVersion(version)));
   }
-
-  let result = resolve_config_from_json(json!({ "targetVersion": "default" }));
-  assert!(result.diagnostics.is_empty());
-  assert_eq!(result.config.target_version, Some(TargetVersion::Default));
 }
 
 #[test]
 fn target_version_rejects_names_ruff_does_not_accept() {
   // Ruff has no "auto" value, and the plugin does not infer a version from requires-python.
-  for value in ["auto", "py3", "py3.10", "Default", "DEFAULT"] {
+  // The bundled Ruff default is used by omitting the option.
+  for value in ["auto", "default", "py3", "py3.10"] {
     let result = resolve_config_from_json(json!({ "targetVersion": value }));
     let properties: Vec<_> = result
       .diagnostics
@@ -118,19 +115,10 @@ fn resolved_config_survives_serde_round_trip() {
   assert_eq!(serialized["fixLintErrors"]["knownThirdParty"], json!(["requests"]));
 
   let round_trip: Configuration = serde_json::from_value(serialized).unwrap();
-  assert_eq!(
-    round_trip.target_version,
-    Some(TargetVersion::Version(PythonVersion::PY310))
-  );
+  assert_eq!(round_trip.target_version, Some(TargetVersion(PythonVersion::PY310)));
   let lint = round_trip.fix_lint_errors.unwrap();
   assert_eq!(lint.known_first_party, Some(vec!["app.*".to_string()]));
   assert_eq!(lint.known_third_party, Some(vec!["requests".to_string()]));
-
-  let result = resolve_config_from_json(json!({ "targetVersion": "default" }));
-  let serialized = serde_json::to_value(&result.config).unwrap();
-  assert_eq!(serialized["targetVersion"], json!("default"));
-  let round_trip: Configuration = serde_json::from_value(serialized).unwrap();
-  assert_eq!(round_trip.target_version, Some(TargetVersion::Default));
 }
 
 #[test]
@@ -145,7 +133,6 @@ fn schema_target_versions_match_ruff() {
     json!(versions),
     "deployment/schema.json targetVersion enum is out of sync with the bundled Ruff; set it to {versions:?}"
   );
-  assert_eq!(target_version["default"], json!("default"));
 }
 
 #[test]
@@ -193,28 +180,6 @@ fn new_settings_report_invalid_values() {
       "targetVersion"
     ]
   );
-}
-
-#[test]
-fn target_version_default_behaves_like_omitted() {
-  let file_path = PathBuf::from("file.py");
-  let format = |source: &str, config_json: serde_json::Value| format_resolved(&file_path, source, config_json);
-
-  // Both inputs are version-sensitive. See the ConfigTargetVersionPy38,
-  // ConfigTargetVersionPy39, and ConfigTargetVersionPy311Imports specs.
-  let with_statement =
-    "with module.first_context_manager() as first, module.second_context_manager() as second:\n    pass\n";
-  let default = format(with_statement, json!({ "lineLength": 50, "targetVersion": "default" }));
-  let omitted = format(with_statement, json!({ "lineLength": 50 }));
-  assert_eq!(default, omitted);
-
-  let imports = "import tomllib\nimport requests\nimport os\n";
-  let default = format(
-    imports,
-    json!({ "targetVersion": "default", "fixLintErrors": { "unsortedImports": true } }),
-  );
-  let omitted = format(imports, json!({ "fixLintErrors": { "unsortedImports": true } }));
-  assert_eq!(default, omitted);
 }
 
 #[test]
@@ -271,13 +236,16 @@ fn format_reports_invalid_known_module_pattern() {
     }),
     ..Default::default()
   };
-  let error = format_text(&PathBuf::from("file.py"), "import os\n", &config).unwrap_err();
-  assert!(
-    error
-      .to_string()
-      .starts_with("Invalid fixLintErrors.knownThirdParty[1]: "),
-    "unexpected error: {error}"
-  );
+  // the linter settings are resolved once per configuration, so every file must still get the error
+  for _ in 0..2 {
+    let error = format_text(&PathBuf::from("file.py"), "import os\n", &config).unwrap_err();
+    assert!(
+      error
+        .to_string()
+        .starts_with("Invalid fixLintErrors.knownThirdParty[1]: "),
+      "unexpected error: {error}"
+    );
+  }
 }
 
 #[test]

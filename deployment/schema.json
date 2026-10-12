@@ -62,9 +62,7 @@
     "targetVersion": {
       "description": "The Python version to target (e.g., 'py314').",
       "type": "string",
-      "default": "default",
       "enum": [
-        "default",
         "py37",
         "py38",
         "py39",
