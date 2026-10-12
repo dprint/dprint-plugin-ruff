@@ -1,0 +1,11 @@
+~~ {"targetVersion": "py310", "fixLintErrors": {"unsortedImports": true}} ~~
+== tomllib is third-party before Python 3.11 ==
+import tomllib
+import requests
+import os
+
+[expect]
+import os
+
+import requests
+import tomllib

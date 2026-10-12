@@ -59,6 +59,23 @@
       "type": "boolean",
       "default": false
     },
+    "targetVersion": {
+      "description": "The Python version to target (e.g., 'py314').",
+      "type": "string",
+      "default": "default",
+      "enum": [
+        "default",
+        "py37",
+        "py38",
+        "py39",
+        "py310",
+        "py311",
+        "py312",
+        "py313",
+        "py314",
+        "py315"
+      ]
+    },
     "fixLintErrors": {
       "description": "Whether to apply configured Ruff lint fixes.",
       "type": "object",
@@ -81,6 +98,22 @@
         },
         "requiredImports": {
           "description": "Import statements to add when missingRequiredImport is enabled.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "knownFirstParty": {
+          "description": "Module names or globs to treat as first-party.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "knownThirdParty": {
+          "description": "Module names or globs to treat as third-party.",
           "type": "array",
           "items": {
             "type": "string"

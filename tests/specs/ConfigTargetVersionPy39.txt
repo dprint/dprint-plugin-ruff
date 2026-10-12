@@ -1,0 +1,11 @@
+~~ {"lineLength": 50, "targetVersion": "py39"} ~~
+== long with statement is parenthesized ==
+with module.first_context_manager() as first, module.second_context_manager() as second:
+    pass
+
+[expect]
+with (
+    module.first_context_manager() as first,
+    module.second_context_manager() as second,
+):
+    pass

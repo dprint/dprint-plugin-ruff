@@ -1,0 +1,10 @@
+~~ {"fixLintErrors": {"unsortedImports": false, "knownFirstParty": ["app"], "knownThirdParty": ["requests"]}} ~~
+== import settings do not sort imports by themselves ==
+import requests
+import app
+import os
+
+[expect]
+import requests
+import app
+import os

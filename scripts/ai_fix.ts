@@ -145,7 +145,7 @@ function describeWiring(): string {
     `- \`src/format_text.rs\` -> \`resolve_options\` maps this plugin's \`Configuration\` onto ruff's \`PyFormatOptions\` (through its \`with_*\` builder methods) and the option enums (\`IndentStyle\`, \`LineEnding\`, \`QuoteStyle\`, \`MagicTrailingComma\`, \`PreviewMode\`).`,
     `- \`src/configuration/configuration.rs\` -> the plugin's own \`Configuration\` struct and enums.`,
     `- \`src/configuration/resolve_config.rs\` -> reads each dprint config key (camelCase) into \`Configuration\`.`,
-    `- \`deployment/schema.json\` -> the JSON schema of config options shown to users.`,
+    `- \`deployment/schema.json\` -> the JSON schema of config options shown to users. Its \`targetVersion\` enum must equal \`TargetVersion::all_names()\`, which the \`schema_target_versions_match_ruff\` test enforces. When a Ruff upgrade adds a Python version, update the enum too.`,
     `- \`tests/specs/*.txt\` -> spec tests (run by \`dprint_development::run_specs\` via \`tests/test.rs\`) that exercise each config option.`,
   ].join("\n");
 }
@@ -237,7 +237,13 @@ function buildReviewPrompt(options: AiFixOptions): string {
 }
 
 function parseReview(message: string): ReviewResult {
-  const review = JSON.parse(extractJsonObject(message)) as ReviewResult;
+  const json = extractJsonObject(message);
+  let review: ReviewResult;
+  try {
+    review = JSON.parse(json) as ReviewResult;
+  } catch (error) {
+    throw new Error(`Codex review returned malformed JSON:\n${message}`, { cause: error });
+  }
   if (typeof review.approved !== "boolean" || !Array.isArray(review.issues)) {
     throw new Error(`Codex review returned malformed JSON:\n${message}`);
   }

@@ -1,0 +1,11 @@
+~~ {"targetVersion": "py311", "fixLintErrors": {"unsortedImports": true}} ~~
+== tomllib is standard-library in Python 3.11 ==
+import tomllib
+import requests
+import os
+
+[expect]
+import os
+import tomllib
+
+import requests

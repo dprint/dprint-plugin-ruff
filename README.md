@@ -27,7 +27,12 @@ To add configuration, specify a `"ruff"` key in your dprint.json:
   "ruff": {
     "indentStyle": "space",
     "lineLength": 100,
-    "indentWidth": 2
+    "targetVersion": "py310",
+    "fixLintErrors": {
+      "unsortedImports": true,
+      "knownFirstParty": ["my_package"],
+      "knownThirdParty": ["requests"]
+    }
   },
   "plugins": [
     // ...etc...
