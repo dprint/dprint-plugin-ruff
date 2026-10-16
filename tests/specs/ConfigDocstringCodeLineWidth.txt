@@ -1,0 +1,15 @@
+~~ docstringCodeFormat: true, docstringCodeLineWidth: 20 ~~
+== wrap docstring code at a fixed width ==
+def example():
+    """
+    >>> result = some_function(argument_one, argument_two)
+    """
+
+[expect]
+def example():
+    """
+    >>> result = some_function(
+    ...     argument_one,
+    ...     argument_two,
+    ... )
+    """

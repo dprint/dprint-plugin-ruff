@@ -1,0 +1,7 @@
+~~ lineEnding: cr ~~
+== use carriage returns ==
+first=1
+second=2
+
+[expect]
+first = 1second = 2

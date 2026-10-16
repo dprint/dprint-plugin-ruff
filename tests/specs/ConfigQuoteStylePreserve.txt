@@ -1,0 +1,8 @@
+~~ quoteStyle: preserve ~~
+== preserve mixed quotes ==
+first= 'hello'
+second= "world"
+
+[expect]
+first = 'hello'
+second = "world"

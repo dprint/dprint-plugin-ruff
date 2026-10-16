@@ -1,0 +1,12 @@
+~~ docstringCodeFormat: true ~~
+== format doctest code ==
+def example():
+    """
+    >>> print(  'hello'  )
+    """
+
+[expect]
+def example():
+    """
+    >>> print("hello")
+    """

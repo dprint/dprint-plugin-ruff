@@ -36,18 +36,46 @@ fn resolve_options(file_path: &Path, config: &Configuration) -> PyFormatOptions 
     options = options.with_line_ending(match line_ending {
       crate::configuration::LineEnding::LineFeed => LineEnding::LineFeed,
       crate::configuration::LineEnding::CarriageReturnLineFeed => LineEnding::CarriageReturnLineFeed,
+      crate::configuration::LineEnding::CarriageReturn => LineEnding::CarriageReturn,
     });
   }
   if let Some(quote_style) = config.quote_style {
     options = options.with_quote_style(match quote_style {
       crate::configuration::QuoteStyle::Single => QuoteStyle::Single,
       crate::configuration::QuoteStyle::Double => QuoteStyle::Double,
+      crate::configuration::QuoteStyle::Preserve => QuoteStyle::Preserve,
     })
   }
   if let Some(value) = config.skip_magic_trailing_comma {
     options = options.with_magic_trailing_comma(match value {
       true => ruff_python_formatter::MagicTrailingComma::Ignore,
       false => ruff_python_formatter::MagicTrailingComma::Respect,
+    });
+  }
+  if let Some(value) = config.docstring_code_format {
+    options = options.with_docstring_code(match value {
+      true => ruff_python_formatter::DocstringCode::Enabled,
+      false => ruff_python_formatter::DocstringCode::Disabled,
+    });
+  }
+  if let Some(value) = config.docstring_code_line_width {
+    options = options.with_docstring_code_line_width(match value {
+      crate::configuration::DocstringCodeLineWidth::Fixed(width) => {
+        ruff_python_formatter::DocstringCodeLineWidth::Fixed(width.into())
+      }
+      crate::configuration::DocstringCodeLineWidth::Dynamic(_) => {
+        ruff_python_formatter::DocstringCodeLineWidth::Dynamic
+      }
+    });
+  }
+  if let Some(value) = config.nested_string_quote_style {
+    options = options.with_nested_string_quote_style(match value {
+      crate::configuration::NestedStringQuoteStyle::Alternating => {
+        ruff_python_formatter::NestedStringQuoteStyle::Alternating
+      }
+      crate::configuration::NestedStringQuoteStyle::Preferred => {
+        ruff_python_formatter::NestedStringQuoteStyle::Preferred
+      }
     });
   }
   if let Some(value) = config.preview {

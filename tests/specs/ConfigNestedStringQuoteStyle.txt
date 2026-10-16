@@ -1,0 +1,6 @@
+~~ nestedStringQuoteStyle: preferred, targetVersion: py312 ~~
+== prefer double quotes in nested strings ==
+message = f'hello {lookup["name"]}'
+
+[expect]
+message = f"hello {lookup["name"]}"

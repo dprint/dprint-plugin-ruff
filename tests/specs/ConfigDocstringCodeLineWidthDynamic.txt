@@ -1,0 +1,14 @@
+~~ docstringCodeFormat: true, docstringCodeLineWidth: dynamic, lineLength: 40 ~~
+== use surrounding width for docstring code ==
+def example():
+    """
+    >>> result = some_function(argument_one, argument_two)
+    """
+
+[expect]
+def example():
+    """
+    >>> result = some_function(
+    ...     argument_one, argument_two
+    ... )
+    """

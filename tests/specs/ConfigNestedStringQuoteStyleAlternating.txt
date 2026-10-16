@@ -1,0 +1,6 @@
+~~ nestedStringQuoteStyle: alternating, targetVersion: py312 ~~
+== alternate quotes in nested strings ==
+message = f'hello {lookup["name"]}'
+
+[expect]
+message = f"hello {lookup['name']}"

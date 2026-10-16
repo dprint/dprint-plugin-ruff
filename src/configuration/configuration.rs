@@ -44,18 +44,80 @@ generate_str_to_from![IndentStyle, [Tab, "tab"], [Space, "space"]];
 pub enum LineEnding {
   LineFeed,
   CarriageReturnLineFeed,
+  CarriageReturn,
 }
 
-generate_str_to_from![LineEnding, [LineFeed, "lf"], [CarriageReturnLineFeed, "cr-lf"]];
+generate_str_to_from![
+  LineEnding,
+  [LineFeed, "lf"],
+  [CarriageReturnLineFeed, "cr-lf"],
+  [CarriageReturn, "cr"]
+];
 
 #[derive(Clone, PartialEq, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum QuoteStyle {
   Single,
   Double,
+  Preserve,
 }
 
-generate_str_to_from![QuoteStyle, [Single, "single"], [Double, "double"]];
+generate_str_to_from![
+  QuoteStyle,
+  [Single, "single"],
+  [Double, "double"],
+  [Preserve, "preserve"]
+];
+
+#[derive(Clone, PartialEq, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum NestedStringQuoteStyle {
+  Alternating,
+  Preferred,
+}
+
+generate_str_to_from![
+  NestedStringQuoteStyle,
+  [Alternating, "alternating"],
+  [Preferred, "preferred"]
+];
+
+#[derive(Clone, PartialEq, Copy, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum DocstringCodeLineWidth {
+  Fixed(std::num::NonZeroU16),
+  Dynamic(DynamicLineWidth),
+}
+
+#[derive(Clone, PartialEq, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum DynamicLineWidth {
+  Dynamic,
+}
+
+impl std::str::FromStr for DocstringCodeLineWidth {
+  type Err = ParseConfigurationError;
+
+  fn from_str(value: &str) -> Result<Self, Self::Err> {
+    if value == "dynamic" {
+      Ok(Self::Dynamic(DynamicLineWidth::Dynamic))
+    } else {
+      value
+        .parse()
+        .map(Self::Fixed)
+        .map_err(|_| ParseConfigurationError(value.to_string()))
+    }
+  }
+}
+
+impl std::fmt::Display for DocstringCodeLineWidth {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Self::Fixed(width) => width.fmt(f),
+      Self::Dynamic(_) => f.write_str("dynamic"),
+    }
+  }
+}
 
 #[derive(Clone, PartialEq, Copy, Debug)]
 pub struct TargetVersion(pub PythonVersion);
@@ -117,6 +179,9 @@ pub struct Configuration {
   pub line_ending: Option<LineEnding>,
   pub quote_style: Option<QuoteStyle>,
   pub skip_magic_trailing_comma: Option<bool>,
+  pub docstring_code_format: Option<bool>,
+  pub docstring_code_line_width: Option<DocstringCodeLineWidth>,
+  pub nested_string_quote_style: Option<NestedStringQuoteStyle>,
   pub preview: Option<bool>,
   pub target_version: Option<TargetVersion>,
   pub fix_lint_errors: Option<FixLintErrors>,

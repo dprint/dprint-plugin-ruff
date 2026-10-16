@@ -284,3 +284,20 @@ fn should_fail_on_parse_error_js() {
   let err = format_text(&PathBuf::from("./file.py"), "$*&(#*$&#", &config).unwrap_err();
   assert_eq!(err.to_string(), r#"Got unexpected token $ at byte range 0..1"#);
 }
+
+#[test]
+fn docstring_code_line_width_validates_and_serializes() {
+  for value in [json!(1), json!(30), json!(65535), json!("dynamic")] {
+    let result = resolve_config_from_json(json!({ "docstringCodeLineWidth": value }));
+    ensure_no_diagnostics(&result.diagnostics);
+    let serialized = serde_json::to_value(&result.config).unwrap();
+    assert_eq!(serialized["docstringCodeLineWidth"], value);
+  }
+
+  for value in [json!(0), json!(-1), json!(65536), json!("auto"), json!(true)] {
+    let result = resolve_config_from_json(json!({ "docstringCodeLineWidth": value }));
+    assert!(result.config.docstring_code_line_width.is_none());
+    assert_eq!(result.diagnostics.len(), 1);
+    assert_eq!(result.diagnostics[0].property_name, "docstringCodeLineWidth");
+  }
+}
