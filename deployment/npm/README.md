@@ -12,7 +12,8 @@ import { getBuffer } from "@dprint/ruff";
 
 const formatter = createFromBuffer(getBuffer());
 
-console.log(
-  formatter.formatText("test.py", `print(  "Hi!")`),
-);
+console.log(formatter.formatText({
+  filePath: "test.py",
+  fileText: `print(  "Hi!")`,
+}));
 ```
