@@ -33,6 +33,7 @@ impl SyncPluginHandler<Configuration> for RuffPluginHandler {
           // "ipynb".to_string()
         ],
         file_names: vec![],
+        additive: false,
       },
     }
   }
