@@ -301,3 +301,124 @@ fn docstring_code_line_width_validates_and_serializes() {
     assert_eq!(result.diagnostics[0].property_name, "docstringCodeLineWidth");
   }
 }
+
+#[test]
+fn range_inside_statement_formats_only_that_statement() {
+  let source = "x  =  1\ny  =  [1,2]\nz  =  3\n";
+  let range = range_of(source, "[1,2]");
+  assert_eq!(
+    format_range(source, range).as_deref(),
+    Some("x  =  1\ny = [1, 2]\nz  =  3\n")
+  );
+}
+
+#[test]
+fn range_inside_nested_statement_keeps_indentation() {
+  let source = "def f():\n    x  =  1\n    y  =  2\n";
+  let range = range_of(source, "y  =");
+  assert_eq!(
+    format_range(source, range).as_deref(),
+    Some("def f():\n    x  =  1\n    y = 2\n")
+  );
+}
+
+#[test]
+fn range_spanning_statements_formats_each_statement() {
+  let source = "a  =  1\nb  =  2\nc  =  3\nd  =  4\n";
+  let range = source.find("=  2").unwrap()..source.find("=  3").unwrap();
+  assert_eq!(
+    format_range(source, range).as_deref(),
+    Some("a  =  1\nb = 2\nc = 3\nd  =  4\n")
+  );
+}
+
+#[test]
+fn already_formatted_range_is_unchanged() {
+  let source = "x  =  1\ny = [1, 2]\nz  =  3\n";
+  let range = range_of(source, "y = [1, 2]");
+  assert_eq!(format_range(source, range), None);
+}
+
+#[test]
+fn empty_range_is_unchanged() {
+  let source = "x  =  1\n";
+  assert_eq!(format_range(source, 3..3), None);
+}
+
+#[test]
+fn range_after_multi_byte_chars() {
+  let source = "s  =  'héllo 😀'\nx  =  [1,2]\n";
+  let range = range_of(source, "[1,2]");
+  assert_eq!(
+    format_range(source, range).as_deref(),
+    Some("s  =  'héllo 😀'\nx = [1, 2]\n")
+  );
+}
+
+#[test]
+fn range_keeps_bom() {
+  let source = "\u{FEFF}x  =  1\ny  =  2\n";
+  let range = range_of(source, "y  =  2");
+  assert_eq!(format_range(source, range).as_deref(), Some("\u{FEFF}x  =  1\ny = 2\n"));
+  let range = 0..source.find('x').unwrap() + 1;
+  assert_eq!(format_range(source, range).as_deref(), Some("\u{FEFF}x = 1\ny  =  2\n"));
+}
+
+#[test]
+fn range_off_char_boundaries_is_widened() {
+  let source = "s  =  '😀'\nx  =  1\n";
+  let emoji_start = source.find('😀').unwrap();
+  // starts and ends inside the 4 byte emoji
+  let range = emoji_start + 1..emoji_start + 2;
+  assert_eq!(format_range(source, range).as_deref(), Some("s = \"😀\"\nx  =  1\n"));
+}
+
+#[test]
+fn range_past_end_of_text_is_clamped() {
+  let source = "x  =  1\ny  =  2\n";
+  let range = source.find('y').unwrap()..source.len() + 10;
+  assert_eq!(format_range(source, range).as_deref(), Some("x  =  1\ny = 2\n"));
+}
+
+#[test]
+fn range_does_not_apply_lint_fixes() {
+  let source = "import os\nx  =  1\n";
+  let result = resolve_config_from_json(json!({ "fixLintErrors": { "unusedImport": true } }));
+  ensure_no_diagnostics(&result.diagnostics);
+  let range = range_of(source, "x  =  1");
+  let formatted = format_text_range(&PathBuf::from("file.py"), source, range, &result.config).unwrap();
+  assert_eq!(formatted.as_deref(), Some("import os\nx = 1\n"));
+}
+
+#[test]
+fn range_in_stub_file() {
+  let source = "def f(a:int)->int: ...\ndef g(b:str)->str: ...\n";
+  let range = range_of(source, "b:str");
+  let formatted = format_text_range(&PathBuf::from("file.pyi"), source, range, &Configuration::default()).unwrap();
+  assert_eq!(
+    formatted.as_deref(),
+    Some("def f(a:int)->int: ...\ndef g(b: str) -> str: ...\n")
+  );
+}
+
+#[test]
+fn range_in_notebook_is_unchanged() {
+  let source = r#"{"cells": [], "metadata": {}, "nbformat": 4, "nbformat_minor": 2}"#;
+  let formatted = format_text_range(
+    &PathBuf::from("file.ipynb"),
+    source,
+    0..source.len(),
+    &Configuration::default(),
+  )
+  .unwrap();
+  assert_eq!(formatted, None);
+}
+
+fn format_range(source: &str, range: std::ops::Range<usize>) -> Option<String> {
+  format_text_range(&PathBuf::from("file.py"), source, range, &Configuration::default()).unwrap()
+}
+
+fn range_of(source: &str, needle: &str) -> std::ops::Range<usize> {
+  let start = source.find(needle).unwrap();
+  start..start + needle.len()
+}

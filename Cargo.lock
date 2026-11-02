@@ -452,6 +452,7 @@ dependencies = [
  "ruff_python_ast",
  "ruff_python_formatter",
  "ruff_python_semantic",
+ "ruff_text_size",
  "serde",
  "serde_json",
  "uuid",

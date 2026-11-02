@@ -1,5 +1,6 @@
 use std::num::NonZeroU8;
 use std::num::NonZeroU16;
+use std::ops::Range;
 use std::path::Path;
 
 use crate::configuration::Configuration;
@@ -8,6 +9,9 @@ use ruff_formatter::printer::LineEnding;
 use ruff_python_formatter::PyFormatOptions;
 use ruff_python_formatter::QuoteStyle;
 use ruff_python_formatter::format_module_source;
+use ruff_python_formatter::format_range;
+use ruff_text_size::TextRange;
+use ruff_text_size::TextSize;
 
 pub fn format_text(file_path: &Path, input_text: &str, config: &Configuration) -> Result<Option<String>> {
   let linted_text = crate::lint::apply_lint_fixes(file_path, input_text, config)?;
@@ -16,6 +20,46 @@ pub fn format_text(file_path: &Path, input_text: &str, config: &Configuration) -
   let printed = format_module_source(source_text, options)?;
   let code = printed.into_code();
   if code == input_text { Ok(None) } else { Ok(Some(code)) }
+}
+
+/// Formats only the part of the text within the provided byte range.
+///
+/// Ruff widens the range to the logical lines it touches and the text outside of those is left as
+/// it was. Lint fixes aren't applied because they can change code outside of the range, and
+/// notebooks are left unformatted because Ruff can't range format them.
+pub fn format_text_range(
+  file_path: &Path,
+  input_text: &str,
+  range: Range<usize>,
+  config: &Configuration,
+) -> Result<Option<String>> {
+  let options = resolve_options(file_path, config);
+  if options.source_type().is_ipynb() {
+    return Ok(None);
+  }
+
+  // Ruff's range formatting panics when the text starts with a BOM, so format the text after it
+  // and keep the BOM as it was
+  let text = input_text.strip_prefix('\u{FEFF}').unwrap_or(input_text);
+  let bom = &input_text[..input_text.len() - text.len()];
+  let range = range.start.saturating_sub(bom.len())..range.end.saturating_sub(bom.len());
+
+  let range = clamp_to_char_boundaries(text, range);
+  let range = TextRange::new(TextSize::try_from(range.start)?, TextSize::try_from(range.end)?);
+  let printed = format_range(text, range, options)?;
+  let source_range = Range::<usize>::from(printed.source_range());
+  let code = printed.as_code();
+
+  let mut formatted = String::with_capacity(input_text.len() - source_range.len() + code.len());
+  formatted.push_str(bom);
+  formatted.push_str(&text[..source_range.start]);
+  formatted.push_str(code);
+  formatted.push_str(&text[source_range.end..]);
+  if formatted == input_text {
+    Ok(None)
+  } else {
+    Ok(Some(formatted))
+  }
 }
 
 fn resolve_options(file_path: &Path, config: &Configuration) -> PyFormatOptions {
@@ -88,6 +132,19 @@ fn resolve_options(file_path: &Path, config: &Configuration) -> PyFormatOptions 
     options = options.with_target_version(target_version.0);
   }
   options
+}
+
+/// Clamps the range to the text and widens it to the nearest char boundaries.
+fn clamp_to_char_boundaries(text: &str, range: Range<usize>) -> Range<usize> {
+  let mut end = range.end.min(text.len());
+  let mut start = range.start.min(end);
+  while !text.is_char_boundary(start) {
+    start -= 1;
+  }
+  while !text.is_char_boundary(end) {
+    end += 1;
+  }
+  start..end
 }
 
 #[cfg(test)]
