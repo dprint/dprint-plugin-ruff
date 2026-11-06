@@ -2,11 +2,85 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://plugins.dprint.dev/dprint/dprint-plugin-ruff/0.0.0/schema.json",
   "type": "object",
+  "x-playground": {
+    "input": [
+      "import sys",
+      "from dataclasses import dataclass,field",
+      "",
+      "@dataclass",
+      "class Order :",
+      "    id:int",
+      "    items:list[str]=field( default_factory=list )",
+      "    total : float=0.0",
+      "",
+      "def load_orders(path:str)->list[Order]:",
+      "    orders=[]",
+      "    with open(path) as f :",
+      "        for line in f:",
+      "            parts=line.strip().split(',')",
+      "            orders.append(Order(id=int(parts[0]),items=parts[1:-1],total=float(parts[-1])))",
+      "    return orders",
+      "",
+      "def summarize(orders):",
+      "    total=sum(o.total for o in orders)",
+      "    print('orders: %d, total: %.2f'%(len(orders),total))",
+      "    return {'count':len(orders),'total':total,}",
+      "",
+      "if __name__=='__main__':",
+      "    summarize(load_orders(sys.argv[1] if len(sys.argv)>1 else 'orders.csv'))"
+    ]
+  },
+  "x-sections": [
+    {
+      "title": "General",
+      "description": "The width, indentation, and line endings of all the code.",
+      "properties": [
+        "lineLength",
+        "indentWidth",
+        "indentStyle",
+        "lineEnding"
+      ]
+    },
+    {
+      "title": "Strings and commas",
+      "description": "The quotes of strings and how trailing commas affect line breaks.",
+      "properties": [
+        "quoteStyle",
+        "nestedStringQuoteStyle",
+        "skipMagicTrailingComma"
+      ]
+    },
+    {
+      "title": "Docstrings",
+      "description": "The formatting of code examples in docstrings.",
+      "properties": [
+        "docstringCodeFormat",
+        "docstringCodeLineWidth"
+      ]
+    },
+    {
+      "title": "Python version and preview",
+      "description": "The Python version the code is formatted for and Ruff's unstable formatting.",
+      "properties": [
+        "targetVersion",
+        "preview"
+      ]
+    },
+    {
+      "title": "Lint fixes",
+      "description": "Ruff lint fixes that are applied when formatting.",
+      "properties": [
+        "fixLintErrors"
+      ]
+    }
+  ],
   "properties": {
     "indentWidth": {
       "description": "The number of characters for an indent.",
       "default": 4,
-      "type": "number"
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 255
     },
     "indentStyle": {
       "description": "Whether to use tabs or spaces.",
@@ -18,12 +92,21 @@
       }, {
         "const": "space",
         "description": "Use spaces."
-      }]
+      }],
+      "x-example": {
+        "input": [
+          "def greet(name):",
+          "    if name:",
+          "        print(\"Hello, \" + name)"
+        ]
+      }
     },
     "lineLength": {
       "description": "How many characters can be written on a single line.",
       "default": 88,
-      "type": "number"
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535
     },
     "quoteStyle": {
       "description": "The type of quote used when representing string literals.",
@@ -34,11 +117,17 @@
         "description": "Use double quotes."
       }, {
         "const": "single",
-        "description": "Use single quotes"
+        "description": "Use single quotes."
       }, {
         "const": "preserve",
         "description": "Preserve existing quotes."
-      }]
+      }],
+      "x-example": {
+        "input": [
+          "greeting = 'Hello'",
+          "name = \"world\""
+        ]
+      }
     },
     "lineEnding": {
       "description": "The kind of line ending.",
@@ -56,39 +145,76 @@
       }]
     },
     "skipMagicTrailingComma": {
-      "description": "Ignore the magic trailing comma.",
+      "description": "Ignore the magic trailing comma, which otherwise keeps a collection or call with a trailing comma on multiple lines.",
       "type": "boolean",
-      "default": false
+      "default": false,
+      "x-example": {
+        "input": [
+          "colors = [\"red\", \"green\", \"blue\",]"
+        ]
+      }
     },
     "docstringCodeFormat": {
       "description": "Whether to format code examples in docstrings.",
       "type": "boolean",
-      "default": false
+      "default": false,
+      "x-example": {
+        "input": [
+          "def add(a, b):",
+          "    \"\"\"Adds two numbers.",
+          "",
+          "    >>> add( 1,2 )",
+          "    3",
+          "    \"\"\"",
+          "    return a + b"
+        ]
+      }
     },
     "docstringCodeLineWidth": {
-      "description": "Line width for docstring code examples, or dynamic to use the surrounding code line width.",
+      "description": "Line width for docstring code examples, or `dynamic` to use the surrounding code line width.",
       "default": "dynamic",
       "oneOf": [{
         "type": "integer",
         "minimum": 1,
-        "maximum": 65535
+        "maximum": 65535,
+        "description": "The line width for code examples."
       }, {
-        "const": "dynamic"
+        "const": "dynamic",
+        "description": "Fit code examples within `lineLength`, taking the indentation of the docstring into account."
       }]
     },
     "nestedStringQuoteStyle": {
       "description": "Quote style for nested strings in Python 3.12 and newer.",
       "type": "string",
-      "enum": ["alternating", "preferred"],
-      "default": "alternating"
+      "default": "alternating",
+      "oneOf": [{
+        "const": "alternating",
+        "description": "Use the opposite quote of the enclosing string for nested strings."
+      }, {
+        "const": "preferred",
+        "description": "Use the `quoteStyle` quote for nested strings too."
+      }],
+      "x-example": {
+        "config": {
+          "targetVersion": "py312"
+        },
+        "input": [
+          "message = f'Hello {user[\"name\"]}'"
+        ]
+      }
     },
     "preview": {
       "description": "Whether to enable preview mode. When preview mode is enabled, Ruff will use unstable rules, fixes, and formatting.",
       "type": "boolean",
-      "default": false
+      "default": false,
+      "x-example": {
+        "input": [
+          "register_routes([(\"/users\", list_users), (\"/users/<id>\", get_user), (\"/health\", check_health)])"
+        ]
+      }
     },
     "targetVersion": {
-      "description": "The Python version to target (e.g., 'py314').",
+      "description": "The Python version to target (ex. `py314`).",
       "type": "string",
       "enum": [
         "py37",
@@ -108,22 +234,22 @@
       "default": {},
       "properties": {
         "unusedImport": {
-          "description": "Whether to remove unused imports using Ruff's F401 rule.",
+          "description": "Whether to remove unused imports using Ruff's `F401` rule.",
           "type": "boolean",
           "default": false
         },
         "unsortedImports": {
-          "description": "Whether to sort imports using Ruff's I001 rule.",
+          "description": "Whether to sort imports using Ruff's `I001` rule.",
           "type": "boolean",
           "default": false
         },
         "missingRequiredImport": {
-          "description": "Whether to add missing required imports using Ruff's I002 rule.",
+          "description": "Whether to add missing required imports using Ruff's `I002` rule.",
           "type": "boolean",
           "default": false
         },
         "requiredImports": {
-          "description": "Import statements to add when missingRequiredImport is enabled.",
+          "description": "Import statements to add when `missingRequiredImport` is enabled.",
           "type": "array",
           "items": {
             "type": "string"

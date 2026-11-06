@@ -25,7 +25,7 @@ wasm = ["serde_json", "dprint-core/wasm"]
 
 [dependencies]
 anyhow = "1.0.51"
-dprint-core = { version = "0.75.0", default-features = false }
+dprint-core = { version = "0.75.2", default-features = false }
 get-size2 = "=0.10.3"
 ruff_formatter = { git = "https://github.com/astral-sh/ruff", tag = "0.17.3" }
 ruff_linter = { git = "https://github.com/astral-sh/ruff", tag = "0.17.3" }
@@ -41,7 +41,7 @@ uuid = { version = "1", features = ["v4", "rng-getrandom"] }
 getrandom = "0.3"
 
 [dev-dependencies]
-dprint-development = "0.9.5"
+dprint-development = "0.12.1"
 pretty_assertions = "1.4.0"
 serde_json = { version = "1.0" }
 

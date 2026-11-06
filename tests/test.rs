@@ -2,6 +2,7 @@ extern crate dprint_development;
 extern crate dprint_plugin_ruff;
 
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use dprint_core::configuration::*;
 use dprint_development::*;
@@ -40,15 +41,19 @@ fn test_specs() {
     },
     {
       let global_config = global_config.clone();
-      move |file_path, file_text, spec_config| {
+      Arc::new(move |file_path, file_text, range, spec_config| {
         let spec_config: ConfigKeyMap = serde_json::from_value(spec_config.clone().into()).unwrap();
         let config_result = resolve_config(spec_config, &global_config);
         ensure_no_diagnostics(&config_result.diagnostics);
 
-        format_text(file_path, file_text, &config_result.config)
-      }
+        let result = match range {
+          Some(range) => format_text_range(file_path, file_text, range, &config_result.config)?,
+          None => format_text(file_path, file_text, &config_result.config)?,
+        };
+        Ok(result)
+      })
     },
-    move |_file_path, _file_text, _spec_config| panic!("Plugin does not support dprint-core tracing."),
+    Arc::new(|_file_path, _file_text, _spec_config| panic!("Plugin does not support dprint-core tracing.")),
   )
 }
 
