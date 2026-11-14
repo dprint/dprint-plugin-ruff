@@ -160,8 +160,8 @@ function tagToVersion(tag: string) {
 
 async function updateRustToolchain(tag: string) {
   const content = await $.request(
-    `https://raw.githubusercontent.com/astral-sh/ruff/${tag}/rust-toolchain.toml`,
-  ).text();
+    `https://api.github.com/repos/astral-sh/ruff/contents/rust-toolchain.toml?ref=${encodeURIComponent(tag)}`,
+  ).header(getGitHubHeaders()).text();
   const match = content.match(/channel\s*=\s*"([^"]+)"/);
   if (match == null) {
     throw new Error("Could not find channel in ruff's rust-toolchain.toml.");
@@ -182,7 +182,7 @@ async function updateRustToolchain(tag: string) {
 }
 
 async function getGitTags(): Promise<string[]> {
-  const client = new Octokit();
+  const client = new Octokit({ auth: Deno.env.get("GITHUB_TOKEN") });
 
   const tags = await client.paginate("GET /repos/{owner}/{repo}/tags", {
     owner: "astral-sh",
@@ -191,4 +191,14 @@ async function getGitTags(): Promise<string[]> {
   });
 
   return tags.map(tag => tag.name);
+}
+
+// Asks the GitHub API for raw file content. It authenticates when there's a
+// token, since unauthenticated requests get rate limited on the runners' shared IPs.
+function getGitHubHeaders(): Record<string, string> {
+  const token = Deno.env.get("GITHUB_TOKEN");
+  return {
+    accept: "application/vnd.github.raw+json",
+    ...(token ? { authorization: `Bearer ${token}` } : {}),
+  };
 }
